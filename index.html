@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7fb; --panel: #fff; --text: #172033; --muted: #667085;
+      --blue: #356df3; --blue-dark: #2454d6; --border: #e6eaf2;
+      --green: #16845b; --red: #c24141; --shadow: 0 8px 26px rgba(25, 42, 70, .06);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, "Segoe UI", Arial, sans-serif; }
+    .app { max-width: 1240px; margin: auto; padding: 28px 24px 48px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:26px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .logo { width:46px; height:46px; display:grid; place-items:center; background:#e9efff; border-radius:14px; font-size:24px; }
+    h1 { margin:0; font-size: clamp(24px, 3vw, 32px); letter-spacing:-.7px; }
+    .subtitle { margin:5px 0 0; color:var(--muted); font-size:14px; }
+    .header-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    button { cursor:pointer; border:0; border-radius:10px; padding:11px 15px; font-weight:650; font-size:14px; transition:.15s; }
+    button:hover { transform:translateY(-1px); }
+    .primary { color:#fff; background:var(--blue); box-shadow:0 4px 10px #356df32b; }
+    .primary:hover { background:var(--blue-dark); }
+    .secondary { color:#344054; background:#fff; border:1px solid var(--border); }
+    .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:22px; }
+    .stat, .panel { background:var(--panel); border:1px solid var(--border); border-radius:17px; box-shadow:var(--shadow); }
+    .stat { padding:20px; }
+    .stat-top { display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:13px; font-weight:600; }
+    .stat-icon { width:36px; height:36px; display:grid; place-items:center; background:#f0f4ff; border-radius:11px; font-size:18px; }
+    .stat-value { margin-top:13px; font-size:28px; font-weight:750; letter-spacing:-.8px; }
+    .stat-note { margin-top:5px; color:var(--muted); font-size:12px; }
+    .layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(280px,1fr); gap:20px; align-items:start; }
+    .panel { padding:22px; margin-bottom:20px; }
+    .panel-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    h2 { margin:0; font-size:18px; letter-spacing:-.3px; }
+    .panel-desc { color:var(--muted); font-size:13px; margin:6px 0 0; }
+    .tools { display:flex; gap:10px; margin-bottom:15px; }
+    input, select { width:100%; min-width:0; padding:11px 12px; border:1px solid #dce2ec; border-radius:10px; background:#fff; color:var(--text); font:inherit; outline:none; }
+    input:focus, select:focus { border-color:var(--blue); box-shadow:0 0 0 3px #356df31b; }
+    .search-wrap { flex:1; position:relative; }
+    .search-wrap input { padding-left:36px; }
+    .search-symbol { position:absolute; left:12px; top:10px; color:#98a2b3; }
+    .tools select { max-width:160px; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:480px; }
+    th { text-align:left; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.7px; padding:12px 10px; border-bottom:1px solid var(--border); }
+    td { padding:15px 10px; border-bottom:1px solid #eef1f6; font-size:14px; }
+    tbody tr:last-child td { border-bottom:0; }
+    .product-name { font-weight:700; }
+    .product-sub { color:var(--muted); font-size:12px; margin-top:4px; }
+    .badge { display:inline-block; padding:5px 9px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap; }
+    .budget { color:#087443; background:#e7f8ef; }
+    .standard { color:#935f00; background:#fff3d7; }
+    .premium { color:#5b45c6; background:#eeeaff; }
+    .category { color:#53627a; background:#eef1f6; }
+    .delete-btn { color:var(--red); background:#fff0f0; padding:7px 9px; }
+    .empty { text-align:center; padding:28px 12px; color:var(--muted); }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .field { display:flex; flex-direction:column; gap:7px; margin-bottom:13px; }
+    label { font-size:12px; font-weight:700; color:#475467; }
+    .field.full { grid-column:1/-1; }
+    .form-actions { display:flex; gap:9px; flex-wrap:wrap; }
+    .calc-result { margin-top:15px; padding:15px; background:#f2f6ff; border:1px solid #e0e9ff; border-radius:12px; }
+    .calc-row { display:flex; justify-content:space-between; gap:12px; margin:8px 0; color:#475467; font-size:13px; }
+    .calc-row.total { padding-top:10px; border-top:1px solid #dbe5ff; color:var(--text); font-size:16px; font-weight:800; }
+    .report-list { display:grid; gap:9px; }
+    .report-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 12px; background:#f8f9fc; border-radius:10px; font-size:13px; }
+    .report-item span:first-child { font-weight:650; }
+    .notice { margin-top:14px; padding:11px 13px; border-radius:10px; font-size:13px; display:none; }
+    .notice.success { display:block; color:#087443; background:#e7f8ef; }
+    .notice.error { display:block; color:#a52c2c; background:#fff0f0; }
+    footer { text-align:center; color:#98a2b3; font-size:12px; margin-top:10px; }
+    @media(max-width:850px) { .stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .layout { grid-template-columns:1fr; } }
+    @media(max-width:520px) { .app { padding:20px 13px 32px; } header { align-items:flex-start; flex-direction:column; } .stats { gap:10px; } .stat { padding:15px; } .stat-value { font-size:23px; } .tools { flex-direction:column; } .tools select { max-width:none; } .form-grid { grid-template-columns:1fr; } .field.full { grid-column:auto; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">📦</div>
+        <div>
+          <h1>Inventory Dashboard</h1>
+          <p class="subtitle">Product overview, inventory insights, and pricing tools</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="secondary" id="quickAddBtn">＋ Quick Add (Prompt)</button>
+        <button class="primary" id="focusAddBtn">＋ Add Product</button>
+      </div>
+    </header>
+
+    <section class="stats" aria-label="Inventory summary">
+      <article class="stat">
+        <div class="stat-top"><span>Total inventory value</span><span class="stat-icon">💰</span></div>
+        <div class="stat-value" id="totalValue">$0.00</div><div class="stat-note">Combined value of all products</div>
+      </article>
+      <article class="stat">
+        <div class="stat-top"><span>Total products</span><span class="stat-icon">🧾</span></div>
+        <div class="stat-value" id="productCount">0</div><div class="stat-note">Unique inventory entries</div>
+      </article>
+      <article class="stat">
+        <div class="stat-top"><span>Average price</span><span class="stat-icon">📊</span></div>
+        <div class="stat-value" id="averagePrice">$0.00</div><div class="stat-note">Average price per product</div>
+      </article>
+      <article class="stat">
+        <div class="stat-top"><span>Affordable items</span><span class="stat-icon">🏷️</span></div>
+        <div class="stat-value" id="affordableCount">0</div><div class="stat-note">Products priced below $200</div>
+      </article>
+    </section>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-heading">
+          <div><h2>Product inventory</h2><p class="panel-desc">Search, filter, and manage your products.</p></div>
+        </div>
+        <div class="tools">
+          <div class="search-wrap"><span class="search-symbol">⌕</span><input id="searchInput" type="search" placeholder="Search products..." aria-label="Search products"></div>
+          <select id="categoryFilter" aria-label="Filter by price category">
+            <option value="all">All price tiers</option><option value="Budget">Budget</option><option value="Standard">Standard</option><option value="Premium">Premium</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Tier</th><th>Action</th></tr></thead>
+            <tbody id="inventoryBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="empty" hidden>No products match your search.</div>
+        <div id="notice" class="notice" role="status"></div>
+      </section>
+
+      <div>
+        <section class="panel" id="addPanel">
+          <div class="panel-heading"><div><h2>Add a product</h2><p class="panel-desc">Enter product details below.</p></div></div>
+          <form id="productForm">
+            <div class="form-grid">
+              <div class="field full"><label for="productName">Product name</label><input id="productName" name="productName" placeholder="e.g. Monitor" maxlength="60" required></div>
+              <div class="field"><label for="productPrice">Price ($)</label><input id="productPrice" name="productPrice" type="number" min="0" step="0.01" placeholder="150.00" required></div>
+              <div class="field"><label for="productCategory">Product type</label><select id="productCategory" name="productCategory"><option>Electronics</option><option>Accessories</option><option>Office</option><option>General</option></select></div>
+            </div>
+            <div class="form-actions"><button class="primary" type="submit">Add to inventory</button><button class="secondary" type="reset">Clear</button></div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading"><div><h2>Tax & discount calculator</h2><p class="panel-desc">Estimate a product's final price.</p></div></div>
+          <div class="form-grid">
+            <div class="field"><label for="calcPrice">Base price ($)</label><input id="calcPrice" type="number" min="0" step="0.01" value="100"></div>
+            <div class="field"><label for="discountRate">Discount (%)</label><input id="discountRate" type="number" min="0" max="100" step="0.5" value="10"></div>
+            <div class="field full"><label for="taxRate">Tax (%)</label><input id="taxRate" type="number" min="0" max="100" step="0.5" value="18"></div>
+          </div>
+          <div class="calc-result">
+            <div class="calc-row"><span>Discount amount</span><strong id="discountAmount">$10.00</strong></div>
+            <div class="calc-row"><span>Tax amount</span><strong id="taxAmount">$16.20</strong></div>
+            <div class="calc-row total"><span>Final price</span><strong id="finalPrice">$106.20</strong></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading"><div><h2>Formatted report</h2><p class="panel-desc">Generated using JavaScript array methods.</p></div></div>
+          <div id="reportList" class="report-list"></div>
+        </section>
+      </div>
+    </div>
+    <footer>Capstone Mini Project · Interactive Product Inventory & Analytics Dashboard</footer>
+  </main>
+  <script src="inventory.js"></script>
+</body>
+</html>
